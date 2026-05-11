@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StegaCrypt — Hide Secrets in Plain Sight</title>
+    <meta name="description" content="A steganography tool that hides secret messages inside images using LSB encoding. Built with Core Java concepts.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Animated Background -->
+    <canvas id="matrix-bg"></canvas>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span class="brand-icon">🔐</span>
+            <span class="brand-text">StegaCrypt</span>
+        </div>
+        <div class="nav-links">
+            <a href="#tool">Tool</a>
+            <a href="#how-it-works">How It Works</a>
+            <a href="#architecture">Architecture</a>
+            <a href="#concepts">Java Concepts</a>
+            <a href="https://github.com/Yashasm18/StegaCrypt" target="_blank" class="github-link">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+                GitHub
+            </a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <div class="hero-content">
+            <div class="hero-badge">🕵️ Steganography Tool</div>
+            <h1 class="hero-title">
+                Hide Secrets in
+                <span class="gradient-text">Plain Sight</span>
+            </h1>
+            <p class="hero-subtitle">
+                Embed invisible messages inside ordinary images using Least Significant Bit encoding.
+                No one can tell the image has a secret — until they decode it.
+            </p>
+            <div class="hero-actions">
+                <a href="#tool" class="btn btn-primary">
+                    <span>Try It Now</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </a>
+                <a href="#how-it-works" class="btn btn-ghost">Learn How</a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-value">LSB</span>
+                    <span class="stat-label">Encoding Method</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat">
+                    <span class="stat-value">0.01%</span>
+                    <span class="stat-label">Visual Change</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat">
+                    <span class="stat-value">100%</span>
+                    <span class="stat-label">Core Java</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tool Section -->
+    <section class="tool-section" id="tool">
+        <div class="container">
+            <div class="section-header">
+                <h2>The Tool</h2>
+                <p>Encode secret messages into images or decode hidden messages from them</p>
+            </div>
+
+            <!-- Mode Toggle -->
+            <div class="mode-toggle">
+                <button class="mode-btn active" data-mode="encode" id="encode-tab">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    Encode
+                </button>
+                <button class="mode-btn" data-mode="decode" id="decode-tab">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><line x1="12" y1="3" x2="12" y2="3"/></svg>
+                    Decode
+                </button>
+                <div class="mode-slider"></div>
+            </div>
+
+            <!-- Encode Panel -->
+            <div class="panel encode-panel active" id="encode-panel">
+                <div class="panel-grid">
+                    <div class="panel-card">
+                        <h3>1. Choose an Image</h3>
+                        <div class="dropzone" id="encode-dropzone">
+                            <div class="dropzone-content">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                                <p>Drop image here or <span class="link">browse</span></p>
+                                <span class="dropzone-hint">PNG, JPG, BMP supported</span>
+                            </div>
+                            <img id="encode-preview" class="preview-img hidden" alt="Preview">
+                            <input type="file" id="encode-file-input" accept="image/*" hidden>
+                        </div>
+                    </div>
+                    <div class="panel-card">
+                        <h3>2. Enter Secret Message</h3>
+                        <textarea id="secret-message" class="message-input" placeholder="Type your secret message here..." maxlength="10000"></textarea>
+                        <div class="char-counter">
+                            <span id="char-count">0</span> / <span id="max-chars">0</span> characters
+                        </div>
+                        <button class="btn btn-primary btn-full" id="encode-btn" disabled>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            Encode Message
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Encode Result -->
+                <div class="result-card hidden" id="encode-result">
+                    <div class="result-header">
+                        <span class="result-badge">✅ Message Encoded Successfully!</span>
+                    </div>
+                    <div class="result-grid">
+                        <div class="result-image-wrap">
+                            <canvas id="result-canvas"></canvas>
+                        </div>
+                        <div class="result-stats">
+                            <h4>Encoding Statistics</h4>
+                            <div class="stat-row"><span>Message Length</span><span id="stat-msg-len">—</span></div>
+                            <div class="stat-row"><span>Bits Encoded</span><span id="stat-bits">—</span></div>
+                            <div class="stat-row"><span>Pixels Modified</span><span id="stat-pixels">—</span></div>
+                            <div class="stat-row"><span>Image Capacity</span><span id="stat-capacity">—</span></div>
+                            <div class="stat-row"><span>Usage</span><span id="stat-usage">—</span></div>
+                            <button class="btn btn-primary btn-full" id="download-btn">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                Download Encoded Image
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Binary Visualization -->
+                    <div class="binary-viz">
+                        <h4>🔍 Binary Visualization — First 64 Pixels</h4>
+                        <p class="viz-subtitle">Green bits are the ones modified to hide your message</p>
+                        <div class="pixel-grid" id="pixel-grid"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Decode Panel -->
+            <div class="panel decode-panel" id="decode-panel">
+                <div class="panel-grid">
+                    <div class="panel-card">
+                        <h3>1. Upload Encoded Image</h3>
+                        <div class="dropzone" id="decode-dropzone">
+                            <div class="dropzone-content">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                                <p>Drop encoded image here or <span class="link">browse</span></p>
+                                <span class="dropzone-hint">Must be a StegaCrypt encoded PNG</span>
+                            </div>
+                            <img id="decode-preview" class="preview-img hidden" alt="Preview">
+                            <input type="file" id="decode-file-input" accept="image/*" hidden>
+                        </div>
+                    </div>
+                    <div class="panel-card">
+                        <h3>2. Reveal the Secret</h3>
+                        <div class="decode-output" id="decode-output">
+                            <div class="decode-placeholder">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                                <p>Upload an encoded image to reveal its hidden message</p>
+                            </div>
+                            <div class="decode-message hidden" id="decoded-message-wrap">
+                                <div class="decoded-badge">🔓 Hidden Message Revealed</div>
+                                <p id="decoded-message"></p>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary btn-full" id="decode-btn" disabled>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 5-5 5 5 0 0 1 5 5v4"/></svg>
+                            Decode Message
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-section" id="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <h2>How It Works</h2>
+                <p>The magic behind LSB Steganography explained</p>
+            </div>
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-number">01</div>
+                    <h3>Message to Binary</h3>
+                    <p>Your secret message is converted into binary (0s and 1s). Each character becomes 8 bits using ASCII encoding.</p>
+                    <div class="step-example">
+                        <code>"Hi" → 01001000 01101001</code>
+                    </div>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">02</div>
+                    <h3>Read Image Pixels</h3>
+                    <p>Each pixel has RGB values (0-255). In binary, each value is 8 bits. The last bit (LSB) is nearly invisible to the eye.</p>
+                    <div class="step-example">
+                        <code>R: 11010<span class="highlight-bit">1</span>10 → 214</code><br>
+                        <code>G: 10110<span class="highlight-bit">0</span>01 → 177</code><br>
+                        <code>B: 01001<span class="highlight-bit">1</span>10 → 78</code>
+                    </div>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">03</div>
+                    <h3>Replace LSBs</h3>
+                    <p>We replace the last bit of each color channel with one bit of our message. The color changes by at most ±1 — completely invisible!</p>
+                    <div class="step-example">
+                        <code>R: 11010<span class="highlight-bit-new">0</span>10 → 213</code><br>
+                        <code>G: 10110<span class="highlight-bit-new">1</span>01 → 178</code><br>
+                        <code>B: 01001<span class="highlight-bit-new">0</span>10 → 77</code>
+                    </div>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">04</div>
+                    <h3>Save & Decode</h3>
+                    <p>The encoded image looks identical to the original. To decode, we simply read the LSBs back and reconstruct the message.</p>
+                    <div class="step-example">
+                        <code>LSBs: 0,1,0... → "Hi" 🎉</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture Section -->
+    <section class="architecture-section" id="architecture">
+        <div class="container">
+            <div class="section-header">
+                <h2>Project Architecture</h2>
+                <p>This website is a demonstration frontend. The core logic is implemented in pure Java.</p>
+            </div>
+            
+            <div class="architecture-diagram">
+                <div class="arch-node frontend">
+                    <div class="arch-icon">🌐</div>
+                    <h4>Frontend Demo</h4>
+                    <p>Web UI deployed on Vercel for live demonstration of the algorithm</p>
+                </div>
+                
+                <div class="arch-arrow">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+                </div>
+                
+                <div class="arch-node java-engine">
+                    <div class="arch-icon">☕</div>
+                    <h4>Java Steganography Engine</h4>
+                    <p>Core OOP implementation containing SteganographyEngine interfaces and LSB logic</p>
+                    <a href="https://github.com/Yashasm18/StegaCrypt/tree/main/java" target="_blank" class="arch-link">View Java Source →</a>
+                </div>
+                
+                <div class="arch-arrow">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+                </div>
+                
+                <div class="arch-node java-io">
+                    <div class="arch-icon">🖼️</div>
+                    <h4>Image Processing (BufferedImage)</h4>
+                    <p>Java's built-in ImageIO and bit manipulation for pixel-level LSB encoding</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Java Concepts Section -->
+    <section class="concepts-section" id="concepts">
+        <div class="container">
+            <div class="section-header">
+                <h2>Core Java Concepts Used</h2>
+                <p>Every line demonstrates fundamental Java principles</p>
+            </div>
+            <div class="concepts-grid">
+                <div class="concept-card">
+                    <div class="concept-icon">🏗️</div>
+                    <h3>OOP Principles</h3>
+                    <p>Classes, Objects, Encapsulation, Inheritance, Polymorphism, Abstraction — all demonstrated through the engine architecture.</p>
+                </div>
+                <div class="concept-card">
+                    <div class="concept-icon">📁</div>
+                    <h3>File I/O</h3>
+                    <p>Reading and writing images using <code>javax.imageio.ImageIO</code>, <code>BufferedImage</code>, and Java's I/O streams.</p>
+                </div>
+                <div class="concept-card">
+                    <div class="concept-icon">🔢</div>
+                    <h3>Bit Manipulation</h3>
+                    <p>AND, OR, XOR, shift operators to extract and modify individual bits within pixel RGB values.</p>
+                </div>
+                <div class="concept-card">
+                    <div class="concept-icon">⚠️</div>
+                    <h3>Exception Handling</h3>
+                    <p>Custom <code>StegoException</code> class extending <code>Exception</code>, with try-catch-finally blocks throughout.</p>
+                </div>
+                <div class="concept-card">
+                    <div class="concept-icon">📦</div>
+                    <h3>Collections</h3>
+                    <p><code>ArrayList</code> for storing pixel data, <code>HashMap</code> for encoding statistics and metadata tracking.</p>
+                </div>
+                <div class="concept-card">
+                    <div class="concept-icon">🖥️</div>
+                    <h3>Swing GUI</h3>
+                    <p>JFrame, JPanel, JButton, JFileChooser, JTextArea — full desktop GUI with event listeners.</p>
+                </div>
+                <div class="concept-card">
+                    <div class="concept-icon">🧵</div>
+                    <h3>Multithreading</h3>
+                    <p><code>SwingWorker</code> for background encoding/decoding without freezing the GUI thread.</p>
+                </div>
+                <div class="concept-card">
+                    <div class="concept-icon">🔌</div>
+                    <h3>Interfaces</h3>
+                    <p><code>SteganographyEngine</code> interface with <code>encode()</code> and <code>decode()</code> — enabling polymorphism and future extensibility.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <span class="brand-icon">🔐</span>
+                    <span>StegaCrypt</span>
+                </div>
+                <p>A Core Java PBL Project — Steganography using LSB Encoding</p>
+                <div class="footer-concepts">
+                    <p>Built using Core Java</p>
+                    <p>OOP • Inheritance • Polymorphism • Abstraction • Encapsulation</p>
+                    <p>File I/O • Collections • Exception Handling • Bit Manipulation</p>
+                    <p>Swing GUI • Multithreading • Interfaces • Enums</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
